@@ -1,26 +1,34 @@
 # CalendarAppINSA
-Petit projet google script pour récupérer l'emploi du temps de l'insa et gérer les aménagements
+
+Petit projet Google Apps Script pour récupérer l'emploi du temps de l'INSA et gérer les aménagements.
+
 ## Note
-Pour l'instant, il n'y a que l'emploi du temps des 1A SHN et des 5A_TLS_SEC qui sont dans le code, allez à la section "Ajouter un groupe" pour trouver la démarche pour ajouter le vôtre.
-J'essaierai d'améliorer l'utilisation pour les cours de l'INSA, l'INP de Toulouse n'utilisant pas les mêmes formats, l'affichage est bien plus organisé que pour l'INSA.
+Pour l'instant, seuls les emplois du temps des **1A SHN** et des **5A_TLS_SEC** sont intégrés dans le code. Rendez-vous à la section **« Ajouter un groupe »** pour trouver la démarche permettant d'ajouter le vôtre.
+
+Vous pouvez modifier le nom des fichiers à la ligne 2 de chaque *handler* (pour créer plusieurs agendas, par exemple).
+
 ## Comment ça marche ?
-La première chose à faire est de se rendre sur google app script : https://script.google.com/home.
-1. Créez votre projet et importer tous les fichiers que vous trouverez dans ce repo. 
-2. Cliquez sur le "+" de Services et ajoutez les API de Google Calendar et de Google Sheets.
-3. Lancer l'éxecution du fichier Code une première fois, un code d'erreur va s'afficher : c'est normal. Un fichier Google Sheets a été créé et il attend qu'un groupe soit sélectionné dans la case A2.
-4. Choisissez votre groupe et relancer l'éxecution.
-5. Vous devriez voir apparaître vos cours tranquillement dans google Sheets par ordre alphabétique
-6. Si vous suivez l'ensemble des cours, cochez oui en face de tous les cours, sinon ne sélectionnez que ceux que vous voulez voir apparaître sur Google Calendar.
-7. Une fois tout vos cours cochés, revenez dans App Script et relancez une 3e fois l'exécution, un agenda devrait se créer dans Google Agenda et les cours devrait apparaître tranquillement (par ordre alphabétique, pas chronologique).
-8. Allez dans le menu déclencheur, (4e icône), créez en un nouveau qui exécute la fonction main, tous les jours ou toutes les heures, à votre convenance.
-9. Normalement vous avez réussi ! 👍
+
+La première chose à faire est de vous rendre sur Google Apps Script : [script.google.com](https://script.google.com/home).
+
+1. Créez votre projet et importez tous les fichiers situés dans ce dépôt.
+2. Cliquez sur le **« + »** à côté de **Services**, puis ajoutez les API **Google Calendar** et **Google Sheets**.
+3. Lancez l'exécution du fichier `Code` une première fois. Un code d'erreur va s'afficher : **c'est normal**. Un fichier Google Sheets a été créé et attend qu'un groupe soit sélectionné dans la cellule **A2**.
+4. Choisissez votre groupe, puis relancez l'exécution.
+5. Vous devriez voir apparaître vos cours dans Google Sheets, triés par ordre alphabétique.
+6. Si vous suivez l'ensemble des cours, cochez **« Oui »** en face de chaque cours. Sinon, ne sélectionnez que ceux que vous souhaitez voir apparaître dans Google Calendar.
+7. Une fois tous vos cours cochés, revenez dans Apps Script et relancez l'exécution une troisième fois. Un agenda devrait se créer dans Google Agenda et les cours y apparaître (par ordre alphabétique et non chronologique).
+8. Allez dans le menu **Déclencheurs** (4ᵉ icône), puis créez-en un nouveau qui exécute la fonction `main` tous les jours ou toutes les heures, selon votre convenance.
+9. C'est terminé ! 👍
 
 ## Ajouter un groupe
 
-Pour ajouter votre propre groupe, rendez-vous sur ADE et allez chercher votre emploi du temps.
-1. Cliquez sur l'icône export
+Pour ajouter votre propre groupe, rendez-vous sur ADE et cherchez votre emploi du temps :
+
+1. Cliquez sur l'icône d'exportation :
    <img width="544" height="979" alt="CalendarApp" src="https://github.com/user-attachments/assets/c966c55a-7a54-44d5-9fcb-2f7eb3b87ec1" />
-2. Cliquez sur "Génerer l'url". Vous devriez avoir un url de la forme suivant : https://edt.insa-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=2434&projectId=1&calType=ical&nbWeeks=53&displayConfigId=8&firstDate=2026-08-01
-   Récuperez le nombre après "resources=", dans l'exemple 2434 (pour les 2_MIC_A1).
-3. Rendez-vous sur le script, dans le sheetHandler, ajoutez le nom que vous souhaitez avoir pour votre groupe dans la liste ligne 19. Conservez le même nom pour l'ajouter également ligne 79. Copiez-collez la ligne 78, modifiez le nom avec celui que vous avez choisi et modifiez l'id avec celui que vous avez récuperé.
-4. Après ça, vous pouvez lancer la procédure décrite au-dessus !
+2. Cliquez sur **« Générer l'URL »**. Vous devriez obtenir une URL sous la forme suivante :
+   `https://edt.insa-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=2434&projectId=1&calType=ical&nbWeeks=53&displayConfigId=8&firstDate=2026-08-01`  
+   Récupérez le nombre situé après `resources=` (dans l'exemple : **2434** pour les `2_MIC_A1`).
+3. Dans le script, ouvrez le fichier `sheetHandler` et ajoutez le nom souhaité pour votre groupe dans la liste à la **ligne 19**. Conservez ce même nom pour l'ajouter également à la **ligne 79**. Copiez-collez la **ligne 78**, modifiez le nom avec celui que vous avez choisi, puis remplacez l'ID par celui que vous venez de récupérer.
+4. Une fois ces étapes effectuées, vous pouvez lancer la procédure décrite ci-dessus !
