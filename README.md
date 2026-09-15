@@ -22,5 +22,5 @@ Pour ajouter votre propre groupe, rendez-vous sur ADE et allez chercher votre em
    <img width="544" height="979" alt="CalendarApp" src="https://github.com/user-attachments/assets/c966c55a-7a54-44d5-9fcb-2f7eb3b87ec1" />
 2. Cliquez sur "Génerer l'url". Vous devriez avoir un url de la forme suivant : https://edt.insa-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=2434&projectId=1&calType=ical&nbWeeks=53&displayConfigId=8&firstDate=2026-08-01
    Récuperez le nombre après "resources=", dans l'exemple 2434 (pour les 2_MIC_A1).
-3. Rendez-vous sur le script, dans le sheetHandler, ajoutez le nom que vous souhaitez avoir pour votre groupe dan la liste ligne 19. Conservez le même nom pour l'ajouter également ligne 79. Copiez-collez la ligne 78, modifiez le nom avec celui que vous avez choisi et modifiez l'id avec celui que vous avez récuperé.
+3. Rendez-vous sur le script, dans le sheetHandler, ajoutez le nom que vous souhaitez avoir pour votre groupe dans la liste ligne 19. Conservez le même nom pour l'ajouter également ligne 79. Copiez-collez la ligne 78, modifiez le nom avec celui que vous avez choisi et modifiez l'id avec celui que vous avez récuperé.
 4. Après ça, vous pouvez lancer la procédure décrite au-dessus !
