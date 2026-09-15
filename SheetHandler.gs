@@ -16,7 +16,7 @@ function openOrCreateSheet() {
     let plage = sheet.getRange("B1");
     let plage2 = sheet.getRange("B2:B1000");
 
-    var classList =  ["5A_TLS_SEC"];
+    var classList =  ["5A_TLS_SEC","1A_S"];
 
     var regle = SpreadsheetApp.newDataValidation()
       .requireValueInList(classList)
@@ -63,20 +63,11 @@ function getGroupeID(){
   groupeName = sheet.getRange("B1").getValue();
   console.log("groupe name :" + groupeName)
 
-  //Pour ceux qui veulent ajouter leur groupe, voilà comment trouver l'id :
-  //1.Allez sur planex et trouver votre emploi du temps (sur Chrome c'est mieux);
-  //2.Allez sur une semaine où il y a des cours
-  //3.Clic droit : inspecter
-  //4.Onglet Reseaux
-  //5.Sous name, vous voyez chaque nouvelle requete (changez de semaine ou de mois et une nouvelle requete apparaitra)
-  //6.La requete sera de cette forme là : 'wsAde.php?id=3867&sta' donc par exemple id=3867
-  //7.Ajoutez la ligne ici et oubliez pas d'en ajouter une ligne 25 de ce fichier pour la voir apparaitre sur google sheets
-  //8. !! IL FAUT AUSSI MODIFIER LA LIGNE 15,71 et 82 et rajouter +1 à E16, 16 et 15.!!
   try {
     switch (groupeName) {
         case "5A_TLS_SEC" : groupeId = 3757; break;
+        case "1A_S" : groupeId = 2315; break;
       }
-      console.log(groupeId);
       return groupeId;
   }
   catch(e){
@@ -94,7 +85,6 @@ function isN7(){
       case "5A_TLS_SEC" : n7 = 1; break;
       default : n7=0; console.log("INSA group found"); break;
     }
-    console.log(n7);
     return n7;
 }
 
@@ -110,8 +100,7 @@ function filterClasses(agenda) {
     savedData = sheet.getRange(1, 1, lastRow, 2).getValues(); // [nom, oui/non]
   }
 
-  let names = getNames(agenda); // récupère les noms des événements
-  
+  let names = getNames(agenda);
   
   let rule = SpreadsheetApp.newDataValidation()
     .requireValueInList(["oui", "non"], true) // true = afficher le menu
@@ -121,7 +110,6 @@ function filterClasses(agenda) {
   // Mettre à jour la feuille si un nom n'existe pas encore
   for (let i = 0; i < names.length; i++) {
     let nom = names[i];
-    console.log("nom", nom);
 
     let found = false;
 
@@ -135,8 +123,15 @@ function filterClasses(agenda) {
     // Si le nom n'existe pas encore, on l'ajoute avec
     if (!found) {
       sheet.getRange(sheet.getLastRow()+1,1).setValue(nom);
-      sheet.getRange(sheet.getLastRow()+1,2).setDataValidation(rule);
+      sheet.getRange(sheet.getLastRow(),2).setDataValidation(rule);
     }
+
+    lastRow = sheet.getLastRow();
+    savedData = [];
+    if (lastRow > 0) {
+      savedData = sheet.getRange(1, 1, lastRow, 2).getValues(); // [nom, oui/non]
+    }
+    Logger.log("Sheet Handler : " + nom);
   }
 
   // Recharger les données mises à jour
@@ -148,11 +143,9 @@ function filterClasses(agenda) {
     .filter(row => row[1].toLowerCase() === "oui")
     .map(row => row[0]);
 
-  console.log("valid names" + validNames);
   // Filtrer l'agenda pour ne garder que les événements dont le nom correspond à un "oui"
   let filteredAgenda = agenda.filter(ev => {
     let nomEv = ev.summary;
-    console.log(nomEv);
     return validNames.includes(nomEv);
   });
 

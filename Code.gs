@@ -4,7 +4,6 @@ function main(){
   
   //enregistre les dans un fichier sheet, trie ce que je veux voir et me renvoie mon agenda tri
   if (agenda!=null){
-    console.log("CODE", agenda);
     let classes = filterClasses(agenda);
     //une fois que je sais lesquels je veux voir, je les importe dans calendar (s'ils n'existent pas déjà)
     createEventCalendar(classes);

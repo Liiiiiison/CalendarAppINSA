@@ -35,24 +35,21 @@ function createEventCalendar(agenda) {
   let end = new Date((year+1), 7, 23, 0, 0);
   let events = calendar.getEvents(start, end);
   // Vérifie si un événement avec cet ID existe déjà (stocké dans la description)
- 
   for (let i=0;i<agenda.length;i++) {
     let classes = agenda[i] ;
     let event = events.find(ev => ev.getDescription().includes("MY_ID=" + classes.eventId)); 
-    console.log(classes.eventId);
     if (!event) {
       let newEvent = calendar.createEvent(classes.summary, classes.start, classes.end);
       newEvent.setDescription("MY_ID=" + classes.eventId + " LOCATION =" + classes.location);
+      Logger.log("Calendar Handler : Événement créé " + classes.eventId);
     } else {
-      console.log("Classes start : " + classes.start);
-      console.log("Get Start Event : " + event.getStartTime());
       let isRight = event.getStartTime().getTime()===classes.start.getTime() && event.getEndTime().getTime()===classes.end.getTime();
-      console.log(isRight);
       if (isRight){
-        Logger.log("Événement déjà existant pour " + classes.eventId);}
+        Logger.log("Calendar Handler : Événement déjà existant pour " + classes.eventId);}
       else {
         let newEvent = calendar.createEvent(classes.summary, classes.start, classes.end);
         newEvent.setDescription("MY_ID =" + classes.eventId + " LOCATION ="+classes.location);
+        Logger.log("Calendar Handler : Événement déplacé " + classes.eventId);
         event.deleteEvent();
       }
     }

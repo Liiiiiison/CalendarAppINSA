@@ -8,10 +8,8 @@ function fetchInpIcal(n7, id) {
   const debut = Utilities.formatDate(d, 'GMT', 'yyyy-MM-dd')
   const fin = Utilities.formatDate(f, 'GMT', 'yyyy-MM-dd')
   let response ="";
-  console.log("is N7? :" + n7);
   if (n7) {
     response = UrlFetchApp.fetch("https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources="+id+"&projectId=66&calType=ical&firstDate="+debut+"&lastDate="+fin, { muteHttpExceptions: true });
-    console.log(response.getContentText());
   } else {
     response = UrlFetchApp.fetch("https://edt.insa-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources="+id+"&projectId=1&calType=ical&nbWeeks=53&displayConfigId=8&firstDate="+debut, { muteHttpExceptions: true });
   }
@@ -23,14 +21,14 @@ function fetchInpIcal(n7, id) {
   }
 
   const icsText = response.getContentText();
-  return parseIcsContent(icsText);
+  return parseIcsContent(icsText,n7);
 }
 
 
 /**
  * Lit la chaîne brute .ics et extrait les événements sous forme d'objets JavaScript
  */
-function parseIcsContent(icsData) {
+function parseIcsContent(icsData,n7) {
   // Gestion du dépliage des lignes iCal (les lignes longues sont coupées par \r\n suivi d'un espace)
   const unfoldedIcs = icsData.replace(/\r?\n[ \t]/g, '');
   const lines = unfoldedIcs.split(/\r?\n/);
@@ -61,7 +59,7 @@ function parseIcsContent(icsData) {
         currentEvent.uid = rawUid;
         
         // Extraction de l'ID de cours numérique décodé
-        currentEvent.eventId = extractEventIdFromUid(rawUid);
+        currentEvent.eventId = extractEventIdFromUid(rawUid,n7);
       } else if (line.startsWith('DTSTART') || line.startsWith('DTEND')) {
         const isStart = line.startsWith('DTSTART');
         const value = line.split(':')[1];
@@ -75,7 +73,8 @@ function parseIcsContent(icsData) {
       }
     }
   }
-  // 1. Trier le tableau d'événements par ordre alphabétique de summary
+
+    // 1. Trier le tableau d'événements par ordre alphabétique de summary
   const sortedAgenda = [...events].sort((a, b) => {
     const summaryA = a.summary || '';
     const summaryB = b.summary || '';
@@ -89,7 +88,7 @@ function parseIcsContent(icsData) {
 /**
  * Décode l'UID hexadécimal d'ADE pour récupérer l'ID de cours direct (ex: "7001")
  */
-function extractEventIdFromUid(uid) {
+function extractEventIdFromUid(uid,n7) {
   if (!uid || !uid.startsWith("ADE604")) return uid;
 
   try {
@@ -102,11 +101,18 @@ function extractEventIdFromUid(uid) {
     
     // Le format décodé est "2026-2027-[ID_EVENEMENT]-[INDEX]-[RECURRENCE]"
     const parts = str.split('-');
-
-    if (parts.length >= 4) {
+    if (n7) {
+      if (parts.length >= 4) {
+        // Combine l'ID parent et l'index de séance (ex: "7011_4")
+        return parts[2] + "_" + parts[3] + "_" + parts[4]; 
+      }
+    } else {
+      if (parts.length >= 3) {
       // Combine l'ID parent et l'index de séance (ex: "7011_4")
-      return parts[2] + "_" + parts[3] + "_" + parts[4]; 
+      return parts[1] + "_" + parts[2] + "_" + parts[3]; 
+      }
     }
+    
     return str || uid;
   } catch (e) {
     return uid;
@@ -146,8 +152,8 @@ function cleanIcsText(text) {
  * Fonction de test
  */
 function testIcal() {
-  const groupId = 621; // Remplace par l'ID de ton groupe
-  const agenda = fetchInpIcal(groupId);
+  const groupId = 2315; // Remplace par l'ID de ton groupe
+  const agenda = fetchInpIcal(0,groupId);
   
   if (agenda.length > 0) {
     console.log("Exemple de premier cours trouvé :");
@@ -167,13 +173,10 @@ function fetchData(){
   const f = new Date((year+1)+"-"+8+"-"+"01") ;
 
   if (id!=0){      
-    const debut = Utilities.formatDate(d, 'GMT', 'yyyy-MM-dd')
-    const fin = Utilities.formatDate(f, 'GMT', 'yyyy-MM-dd')
-    console.log(debut + "et" + fin)
-    //const resp = UrlFetchApp.fetch("https://planex.insa-toulouse.fr/wsAde.php?id="+id+"&start="+debut+"&end="+fin);
-    // const resp = UrlFetchApp.fetch("https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=1383&projectId=66&calType=ical&firstDate=2026-08-01&lastDate=2027-07-15");
-    let agenda = fetchInpIcal(0,"3736");
-    console.log("fetch data :" + agenda);
+    const debut = Utilities.formatDate(d, 'GMT', 'yyyy-MM-dd');
+    const fin = Utilities.formatDate(f, 'GMT', 'yyyy-MM-dd');
+    let agenda = fetchInpIcal(n7,id);
+    console.log("fetch data :", agenda);
     return agenda;
   }
   else {
@@ -191,16 +194,3 @@ function getNames(agenda) {
   return names;
 }
 
-// function getNames(agenda){
-//   let names = [];
-//   let a = 0;
-//   for (let i=0;i<agenda.length;i++){
-//     let part = agenda[i].title.split("-", 1).join(" ");
-//     if(!names.includes(part)){
-//       names[a]=part;
-//       a++;
-//     }
-//   }
-//   console.log(names);
-//   return names;
-// }
