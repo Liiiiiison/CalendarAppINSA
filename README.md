@@ -7,6 +7,8 @@ Pour l'instant, seuls les emplois du temps des **1A SHN** et des **5A_TLS_SEC** 
 
 Vous pouvez modifier le nom des fichiers à la ligne 2 de chaque *handler* (pour créer plusieurs agendas, par exemple).
 
+Si vous vous êtes trompés dans les cours que vous vouliez suivre, supprimez l'agenda erroné, corrigez le google sheets et relancez l'exécution.
+
 ## Comment ça marche ?
 
 La première chose à faire est de vous rendre sur Google Apps Script : [script.google.com](https://script.google.com/home).
