@@ -1,5 +1,5 @@
 function openOrCreateSheet() {
-  var filename = "MonFichierDeCoursINSA";
+  var filename = "MonFichierDeCours";
   var files = DriveApp.getFilesByName(filename);
   let ss;
   
@@ -83,6 +83,7 @@ function isN7(){
   groupName = sheet.getRange("B1").getValue();
   switch (groupName) {
       case "5A_TLS_SEC" : n7 = 1; break;
+
       default : n7=0; console.log("INSA group found"); break;
     }
     return n7;

@@ -1,5 +1,5 @@
 function getOrCreateMesCoursCalendar() {
-  let name = "MesCoursTestINSA";
+  let name = "Cours";
   let calendars = CalendarApp.getCalendarsByName(name);
 
   if (calendars.length > 0) {
