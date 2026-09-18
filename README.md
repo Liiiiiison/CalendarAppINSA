@@ -20,7 +20,7 @@ La première chose à faire est de vous rendre sur Google Apps Script : [script.
 5. Vous devriez voir apparaître vos cours dans Google Sheets, triés par ordre alphabétique.
 6. Si vous suivez l'ensemble des cours, cochez **« Oui »** en face de chaque cours. Sinon, ne sélectionnez que ceux que vous souhaitez voir apparaître dans Google Calendar.
 7. Une fois tous vos cours cochés, revenez dans Apps Script et relancez l'exécution une troisième fois. Un agenda devrait se créer dans Google Agenda et les cours y apparaître (par ordre alphabétique et non chronologique).
-8. Allez dans le menu **Déclencheurs** (4ᵉ icône), puis créez-en un nouveau qui exécute la fonction `main` tous les jours ou toutes les heures, selon votre convenance.
+8. Allez dans le menu **Déclencheurs** (4ᵉ icône), puis créez-en un nouveau qui exécute la fonction `main` **UNE SEULE FOIS PAR JOUR, A UNE PLAGE HORAIRE QEU VOUS CHOISISSEZ AU HASARD** cela évitera du tuer les serveurs d'ADE si beaucoup de personnes font une requête.
 9. C'est terminé ! 👍
 
 ## Ajouter un groupe
