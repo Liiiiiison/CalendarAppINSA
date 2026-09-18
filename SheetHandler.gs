@@ -67,6 +67,7 @@ function getGroupeID(){
     switch (groupeName) {
         case "5A_TLS_SEC" : groupeId = 3757; break;
         case "1A_S" : groupeId = 2315; break;
+
       }
       return groupeId;
   }
@@ -83,7 +84,6 @@ function isN7(){
   groupName = sheet.getRange("B1").getValue();
   switch (groupName) {
       case "5A_TLS_SEC" : n7 = 1; break;
-
       default : n7=0; console.log("INSA group found"); break;
     }
     return n7;
