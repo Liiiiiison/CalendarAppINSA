@@ -13,7 +13,7 @@ Si vous vous êtes trompés dans les cours que vous vouliez suivre, supprimez l'
 
 La première chose à faire est de vous rendre sur Google Apps Script : [script.google.com](https://script.google.com/home).
 
-1. Créez votre projet et importez tous les fichiers situés dans ce dépôt.
+1. Créez votre projet et importez tous les fichiers situés dans ce dépôt (le plus simple est de les copier-coller directement à la main dans Google App Script, en conservant les noms).
 2. Cliquez sur le **« + »** à côté de **Services**, puis ajoutez les API **Google Calendar** et **Google Sheets**.
 3. Lancez l'exécution du fichier `Code` une première fois. Un code d'erreur va s'afficher : **c'est normal**. Un fichier Google Sheets a été créé et attend qu'un groupe soit sélectionné dans la cellule **A2**.
 4. Choisissez votre groupe, puis relancez l'exécution.
