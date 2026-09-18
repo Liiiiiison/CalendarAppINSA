@@ -32,5 +32,5 @@ Pour ajouter votre propre groupe, rendez-vous sur ADE et cherchez votre emploi d
 2. Cliquez sur **« Générer l'URL »**. Vous devriez obtenir une URL sous la forme suivante :
    `https://edt.insa-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=2434&projectId=1&calType=ical&nbWeeks=53&displayConfigId=8&firstDate=2026-08-01`  
    Récupérez le nombre situé après `resources=` (dans l'exemple : **2434** pour les `2_MIC_A1`).
-3. Dans le script, ouvrez le fichier `sheetHandler` et ajoutez le nom souhaité pour votre groupe dans la liste à la **ligne 19**. Conservez ce même nom pour l'ajouter également à la **ligne 79**. Copiez-collez la **ligne 78**, modifiez le nom avec celui que vous avez choisi, puis remplacez l'ID par celui que vous venez de récupérer.
+3. Dans le script, ouvrez le fichier `sheetHandler` et ajoutez le nom souhaité pour votre groupe dans la liste à la **ligne 19**. Conservez ce même nom pour l'ajouter également à la **ligne 86**. Copiez-collez la **ligne 85**, modifiez le nom avec celui que vous avez choisi, puis remplacez l'ID par celui que vous venez de récupérer.
 4. Une fois ces étapes effectuées, vous pouvez lancer la procédure décrite ci-dessus !
