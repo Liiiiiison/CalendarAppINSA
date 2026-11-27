@@ -1,45 +1,43 @@
+/**
+ * Va chercher le calendrier iCal sur l'ADE correspondant
+ */
+function fetchIcal(groupName) {
+  const url = getUrl(groupName);
 
-function fetchInpIcal(n7, id) {
-  // URL d'export iCal standard d'ADE Direct INP Toulouse
-  const year = new Date().getFullYear();
-  const d = new Date(year+"-"+9+"-"+"01") ;
-  const f = new Date((year+1)+"-"+8+"-"+"01") ;
-     
-  const debut = Utilities.formatDate(d, 'GMT', 'yyyy-MM-dd')
-  const fin = Utilities.formatDate(f, 'GMT', 'yyyy-MM-dd')
-  let response ="";
-  if (n7) {
-    response = UrlFetchApp.fetch("https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources="+id+"&projectId=66&calType=ical&firstDate="+debut+"&lastDate="+fin, { muteHttpExceptions: true });
-  } else {
-    response = UrlFetchApp.fetch("https://edt.insa-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources="+id+"&projectId=1&calType=ical&nbWeeks=53&displayConfigId=8&firstDate="+debut, { muteHttpExceptions: true });
-  }
-  
-  
+  let response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
   if (response.getResponseCode() !== 200) {
-    console.error(`Erreur HTTP ${response.getResponseCode()} lors de la récupération du flux iCal.`);
+    console.error(`HTTP error ${response.getResponseCode()} when fetching iCal stream.`);
     return [];
   }
 
   const icsText = response.getContentText();
-  return parseIcsContent(icsText,n7);
+  return parseIcsContent(icsText);
 }
 
 
 /**
  * Lit la chaîne brute .ics et extrait les événements sous forme d'objets JavaScript
  */
-function parseIcsContent(icsData,n7) {
+function parseIcsContent(icsData) {
   // Gestion du dépliage des lignes iCal (les lignes longues sont coupées par \r\n suivi d'un espace)
   const unfoldedIcs = icsData.replace(/\r?\n[ \t]/g, '');
   const lines = unfoldedIcs.split(/\r?\n/);
 
   const events = [];
   let currentEvent = null;
+  let today = new Date();
+  let ignore = false;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
 
-    if (line === 'BEGIN:VEVENT') {
+    if (ignore === true) {
+      //ignore les évènements antérieurs à today
+      if (line === 'END:VEVENT') {
+        ignore = false;
+      }
+    }
+     else if (line === 'BEGIN:VEVENT') {
       currentEvent = {};
     } else if (line === 'END:VEVENT') {
       if (currentEvent) {
@@ -57,13 +55,15 @@ function parseIcsContent(icsData,n7) {
         // Nettoyage de l'UID (retrait des espaces résiduels)
         const rawUid = line.substring(4).replace(/\s+/g, '');
         currentEvent.uid = rawUid;
-        
         // Extraction de l'ID de cours numérique décodé
-        currentEvent.eventId = extractEventIdFromUid(rawUid,n7);
+        currentEvent.eventId = extractEventIdFromUid(rawUid);
       } else if (line.startsWith('DTSTART') || line.startsWith('DTEND')) {
         const isStart = line.startsWith('DTSTART');
         const value = line.split(':')[1];
         const dateObj = parseIcsDate(value);
+        if (dateObj < today) {
+          ignore = true;
+        }
         
         if (isStart) {
           currentEvent.start = dateObj;
@@ -88,7 +88,7 @@ function parseIcsContent(icsData,n7) {
 /**
  * Décode l'UID hexadécimal d'ADE pour récupérer l'ID de cours direct (ex: "7001")
  */
-function extractEventIdFromUid(uid,n7) {
+function extractEventIdFromUid(uid) {
   if (!uid || !uid.startsWith("ADE604")) return uid;
 
   try {
@@ -98,21 +98,18 @@ function extractEventIdFromUid(uid,n7) {
     for (let i = 0; i < hex.length; i += 2) {
       str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
     }
-    
-    // Le format décodé est "2026-2027-[ID_EVENEMENT]-[INDEX]-[RECURRENCE]"
     const parts = str.split('-');
-    if (n7) {
-      if (parts.length >= 4) {
-        // Combine l'ID parent et l'index de séance (ex: "7011_4")
-        return parts[2] + "_" + parts[3] + "_" + parts[4]; 
-      }
-    } else {
-      if (parts.length >= 3) {
-      // Combine l'ID parent et l'index de séance (ex: "7011_4")
-      return parts[1] + "_" + parts[2] + "_" + parts[3]; 
-      }
-    }
     
+    if (parts.length === 4) {
+      // Format de l'insa : INSA2627-[ID_EVENEMENT]-[INDEX]-[RECURRENCE]
+      return parts[1] + "_" + parts[2] + "_" + parts[3];
+    } else if (parts.length === 5){
+      //Format de l'n7 : 2026-2027-[ID_EVENEMENT]-[INDEX]-[RECURRENCE]
+      // ou de l'ut capitole : ADEPROD_2026-2027-[ID_EVENEMENT]-[INDEX]-[RECURRENCE]
+      return parts[2] + "_" + parts[3] + "_" + parts[4]; 
+    }
+
+    console.log("Unrecognized format : " + str);
     return str || uid;
   } catch (e) {
     return uid;
@@ -153,7 +150,7 @@ function cleanIcsText(text) {
  */
 function testIcal() {
   const groupId = 2315; // Remplace par l'ID de ton groupe
-  const agenda = fetchInpIcal(0,groupId);
+  const agenda = fetchIcal(0,groupId);
   
   if (agenda.length > 0) {
     console.log("Exemple de premier cours trouvé :");
@@ -165,28 +162,41 @@ function testIcal() {
   }
 }
 
-function fetchData(){
-  const year = new Date().getFullYear();
-  let id = getGroupeID();
-  let n7 = isN7();
-  const d = new Date(year+"-"+9+"-"+"01") ;
-  const f = new Date((year+1)+"-"+8+"-"+"01") ;
+/**
+ *  De aout à décembre, donne l'année actuelle.
+ *  De janvier à juillet, donne l'année précédente.
+ */
 
-  if (id!=0){      
-    const debut = Utilities.formatDate(d, 'GMT', 'yyyy-MM-dd');
-    const fin = Utilities.formatDate(f, 'GMT', 'yyyy-MM-dd');
-    let agenda = fetchInpIcal(n7,id);
-    console.log("fetch data :", agenda);
-    return agenda;
-  }
-  else {
-    return null;
+function getStartYear() {
+  let month = new Date().getMonth();
+  if (month > 7) {
+    return new Date().getFullYear();
+  } else {
+    return new Date().getFullYear() - 1 ;
   }
 }
 
+/**
+ * Donne la date de début et de fin au bon format
+ */
+function getDateRange() {
+  const year = getStartYear();
+  let d = new Date(year+"-"+9+"-"+"01") ;
+  let now = new Date();
+  if (now.getMonth() >= 9) {
+    d = now;
+  }
+
+  const end = new Date((year+1)+"-"+8+"-"+"01") ;
+
+  return [d, end];
+}
+
+/**
+ * Retiens juste les noms des évenements
+ */
 function getNames(agenda) {
   let names = [];
-  let a = 0;
 
   for (let i=0;i<agenda.length;i++){
     names[i]=agenda[i].summary;
