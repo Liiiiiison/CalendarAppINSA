@@ -1,98 +1,68 @@
-function openOrCreateSheet() {
-  var filename = "MonFichierDeCours";
+function openOrCreateSheet(groupName) {
+  let year = getStartYear();
+  var filename = "Calendar_INSA_" + year + "-" + (year+1);
   var files = DriveApp.getFilesByName(filename);
   let ss;
+  let sheet;
   
+  //Open or create the spreadsheet file
   if (files.hasNext()) {
     ss = SpreadsheetApp.open(files.next());
-    Logger.log("Fichier trouvé : " + ss.getUrl());
+    console.info("Opening spreadsheet : " + ss.getUrl());
+
+    //get or create the sheet for the group
+    sheet = ss.getSheetByName(groupName);
+    if (sheet != null) {
+      console.info("Opening group " + groupName + " sheet.");
+      return sheet;
+    } else {
+      console.info("Creating group " + groupName + " sheet.");
+      sheet = ss.insertSheet(groupName);
+    }
+
   } else {
     ss = SpreadsheetApp.create(filename);
-    Logger.log("Nouveau fichier créé : " + ss.getUrl());
-    
-    let sheet = ss.getActiveSheet();
-
-    sheet.getRange('A1').setValue('Choisissez votre cours');
-    let plage = sheet.getRange("B1");
-    let plage2 = sheet.getRange("B2:B1000");
-
-    var classList =  ["5A_TLS_SEC","1A_S"];
-
-    var regle = SpreadsheetApp.newDataValidation()
-      .requireValueInList(classList)
-      .setAllowInvalid(false)
-      .build();
-
-    plage.setDataValidation(regle);
-
-    // var options = ["oui", "non"];
-    // var regle2 = SpreadsheetApp.newDataValidation()
-    //   .requireValueInList(options)
-    //   .setAllowInvalid(false)
-    //   .build();
-    // plage2.setDataValidation(regle2);
-
-    var rules = [];
-
-    // Vert si "oui"
-    var ruleOui = SpreadsheetApp.newConditionalFormatRule()
-      .whenTextEqualTo("oui")
-      .setBackground("#b6d7a8") // vert
-      .setRanges([plage, plage2])
-      .build();
-    rules.push(ruleOui);
-
-    // Rouge si "non"
-    var ruleNon = SpreadsheetApp.newConditionalFormatRule()
-      .whenTextEqualTo("non")
-      .setBackground("#f4cccc") // rouge
-      .setRanges([plage, plage2])
-      .build();
-    rules.push(ruleNon);
-
-    // Appliquer les règles
-    sheet.setConditionalFormatRules(rules);
+    console.info("New spreadsheet created : " + ss.getUrl());
+    console.info("Creating group " + groupName + " sheet.");
+    sheet = ss.getActiveSheet();
+    sheet.setName(groupName);
   }
-  return ss;
+
+  // Mise en forme
+
+  sheet.getRange('A1').setValue('Groupe');
+  sheet.getRange('B1').setValue(groupName);
+
+  let plage = sheet.getRange("B1");
+  let plage2 = sheet.getRange("B2:B1000");
+
+  var rules = [];
+
+  // Vert si "oui"
+  var ruleOui = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo("oui")
+    .setBackground("#b6d7a8") // vert
+    .setRanges([plage, plage2])
+    .build();
+  rules.push(ruleOui);
+
+  // Rouge si "non"
+  var ruleNon = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo("non")
+    .setBackground("#f4cccc") // rouge
+    .setRanges([plage, plage2])
+    .build();
+  rules.push(ruleNon);
+
+  // Appliquer les règles
+  sheet.setConditionalFormatRules(rules);
+
+  return sheet;
 }
 
-
-function getGroupeID(){
-  let sheet = openOrCreateSheet().getActiveSheet();
-  let groupeName = "default";
-  groupeName = sheet.getRange("B1").getValue();
-  console.log("groupe name :" + groupeName)
-
-  try {
-    switch (groupeName) {
-        case "5A_TLS_SEC" : groupeId = 3757; break;
-        case "1A_S" : groupeId = 2315; break;
-
-      }
-      return groupeId;
-  }
-  catch(e){
-    console.error("No group found");
-    return 0;    
-  }
-  
-}
-
-function isN7(){
-  let sheet = openOrCreateSheet().getActiveSheet();
-  let n7 = 0;
-  groupName = sheet.getRange("B1").getValue();
-  switch (groupName) {
-      case "5A_TLS_SEC" : n7 = 1; break;
-      default : n7=0; console.log("INSA group found"); break;
-    }
-    return n7;
-}
-
-function filterClasses(agenda) {
+function filterClasses(groupName, agenda) {
   // Récupérer la feuille (ou la créer)
-  let ss = openOrCreateSheet();
-  let sheet = ss.getActiveSheet();
+  let sheet = openOrCreateSheet(groupName);
 
   // Récupérer les noms et statuts existants
   let lastRow = sheet.getLastRow();
@@ -108,6 +78,7 @@ function filterClasses(agenda) {
     .setAllowInvalid(false)
     .build();
   
+  console.info("Extracting classes from " + (names.length-1) + " ADE calendar events.");
   // Mettre à jour la feuille si un nom n'existe pas encore
   for (let i = 0; i < names.length; i++) {
     let nom = names[i];
@@ -125,19 +96,23 @@ function filterClasses(agenda) {
     if (!found) {
       sheet.getRange(sheet.getLastRow()+1,1).setValue(nom);
       sheet.getRange(sheet.getLastRow(),2).setDataValidation(rule);
+      lastRow = lastRow + 1;
+      let values = sheet.getRange(lastRow, 1, 1, 2).getValues();
+      savedData.push(values[0]);
     }
-
-    lastRow = sheet.getLastRow();
-    savedData = [];
-    if (lastRow > 0) {
-      savedData = sheet.getRange(1, 1, lastRow, 2).getValues(); // [nom, oui/non]
-    }
-    Logger.log("Sheet Handler : " + nom);
   }
 
   // Recharger les données mises à jour
   lastRow = sheet.getLastRow();
   savedData = sheet.getRange(1, 1, lastRow, 2).getValues();
+
+  //Look if there's unchecked data
+  let invalidChoices = savedData
+    .filter(row => row[1] === "");
+  console.log(invalidChoices);
+  if (invalidChoices.length > 0) {
+    console.error("There are " + invalidChoices.length + " classes with no indication.\nPlease indicate the classes you want at " + sheet.getParent().getUrl() );
+  } 
 
   // Crée un tableau des noms validés (colonne B = "oui")
   let validNames = savedData
@@ -150,7 +125,7 @@ function filterClasses(agenda) {
     return validNames.includes(nomEv);
   });
 
-  console.log(filteredAgenda);
+  console.info("Agenda filtered.");
   return filteredAgenda;
 }
 
